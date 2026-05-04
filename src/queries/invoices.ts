@@ -81,55 +81,21 @@ export function useCreateInvoice() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: InvoiceCreateInput): Promise<InvoiceRow> => {
-      const { data: auth } = await supabase.auth.getUser();
-      const { data: numberRows, error: numErr } =
-        await supabase.rpc("next_invoice_number");
-      if (numErr) throw numErr;
-      const number = numberRows as unknown as string;
-
-      const { data: invoice, error: invErr } = await supabase
-        .from("invoices")
-        .insert({
-          number,
-          client_id: input.client_id,
-          project_id: input.project_id ?? null,
-          issue_date: input.issue_date,
-          due_date: input.due_date ?? null,
-          tax_rate: input.tax_rate,
-          notes: input.notes ?? null,
-          created_by: auth.user?.id ?? null,
-        })
-        .select("*")
-        .single<InvoiceRow>();
-      if (invErr) throw invErr;
-
-      const itemsPayload = input.lines.map((l, i) => ({
-        invoice_id: invoice.id,
-        description: l.description,
-        quantity: l.quantity,
-        unit_price: l.unit_price,
-        amount: Math.round(l.quantity * l.unit_price * 100) / 100,
-        position: i,
-      }));
-      if (itemsPayload.length > 0) {
-        const { error: itemsErr } = await supabase
-          .from("invoice_items")
-          .insert(itemsPayload);
-        if (itemsErr) throw itemsErr;
-      }
-      const { error: rpcErr } = await supabase.rpc(
-        "recompute_invoice_totals",
-        { p_invoice_id: invoice.id },
-      );
-      if (rpcErr) throw rpcErr;
-
-      const { data: refreshed, error: refErr } = await supabase
-        .from("invoices")
-        .select("*")
-        .eq("id", invoice.id)
-        .single<InvoiceRow>();
-      if (refErr) throw refErr;
-      return refreshed;
+      const { data, error } = await supabase.rpc("create_invoice_with_items", {
+        p_client_id: input.client_id,
+        p_project_id: input.project_id ?? null,
+        p_issue_date: input.issue_date,
+        p_due_date: input.due_date ?? null,
+        p_tax_rate: input.tax_rate,
+        p_notes: input.notes ?? null,
+        p_items: input.lines.map((l) => ({
+          description: l.description,
+          quantity: l.quantity,
+          unit_price: l.unit_price,
+        })),
+      });
+      if (error) throw error;
+      return data as unknown as InvoiceRow;
     },
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: KEY });

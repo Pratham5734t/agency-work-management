@@ -264,6 +264,7 @@ export function ProjectDetailPage() {
             toast.success("Project updated");
             setEditOpen(false);
           }}
+          onError={(msg) => toast.error(msg)}
         />
       ) : null}
 
@@ -285,6 +286,7 @@ export function ProjectDetailPage() {
               patch: { manager_id: managerId },
             });
           }}
+          onError={(msg) => toast.error(msg)}
         />
       ) : null}
     </div>
@@ -315,6 +317,7 @@ function EditProjectModal({
   initial,
   onClose,
   onSave,
+  onError,
 }: {
   initial: {
     name: string;
@@ -339,6 +342,7 @@ function EditProjectModal({
       is_visible_to_client: boolean;
     }>,
   ) => Promise<void>;
+  onError: (message: string) => void;
 }) {
   const [form, setForm] = useState<EditState>({
     name: initial.name,
@@ -365,6 +369,8 @@ function EditProjectModal({
         end_date: form.end_date || null,
         is_visible_to_client: form.is_visible_to_client,
       });
+    } catch (err) {
+      onError(err instanceof Error ? err.message : "Save failed");
     } finally {
       setSaving(false);
     }
@@ -489,6 +495,7 @@ function ManageTeamModal({
   onClose,
   onSaveMembers,
   onSaveManager,
+  onError,
 }: {
   projectId: string;
   managerId: string | null;
@@ -497,6 +504,7 @@ function ManageTeamModal({
   onClose: () => void;
   onSaveMembers: (ids: string[]) => Promise<void>;
   onSaveManager: (managerId: string | null) => Promise<void>;
+  onError: (message: string) => void;
 }) {
   const [selected, setSelected] = useState<Set<string>>(new Set(memberIds));
   const [pm, setPm] = useState<string>(managerId ?? "");
@@ -515,6 +523,8 @@ function ManageTeamModal({
     try {
       await onSaveManager(pm || null);
       await onSaveMembers([...selected]);
+    } catch (err) {
+      onError(err instanceof Error ? err.message : "Save failed");
     } finally {
       setSaving(false);
     }
