@@ -43,10 +43,13 @@ declare
   v_count integer;
 begin
   perform pg_advisory_xact_lock(hashtext('invoice_number_' || v_year));
+  -- Count by the prefix of `number` (which is permanent for the issuing year)
+  -- rather than by `issue_date` so backdated invoices don't create gaps that
+  -- would let later calls regenerate the same number.
   select count(*) + 1
     into v_count
     from public.invoices
-    where to_char(issue_date, 'YYYY') = v_year;
+    where number like 'INV-' || v_year || '-%';
   return 'INV-' || v_year || '-' || lpad(v_count::text, 4, '0');
 end;
 $$;
@@ -85,10 +88,12 @@ declare
   v_amount numeric;
 begin
   perform pg_advisory_xact_lock(hashtext('invoice_number_' || v_year));
+  -- Count by `number` prefix so backdated `issue_date` values don't cause
+  -- collisions: the number is the source of truth for sequencing within a year.
   select count(*) + 1
     into v_count
     from public.invoices
-    where to_char(issue_date, 'YYYY') = v_year;
+    where number like 'INV-' || v_year || '-%';
   v_number := 'INV-' || v_year || '-' || lpad(v_count::text, 4, '0');
 
   insert into public.invoices(

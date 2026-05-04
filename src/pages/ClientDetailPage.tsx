@@ -274,7 +274,7 @@ function EditClientModal({
         contact_phone: form.contact_phone?.trim() || null,
         address: form.address?.trim() || null,
         notes: form.notes?.trim() || null,
-        monthly_retainer: form.monthly_retainer || null,
+        monthly_retainer: form.monthly_retainer ?? null,
       });
       toast.success("Client updated");
       onClose();

@@ -166,7 +166,7 @@ function NewClientModal({
         industry: form.industry?.trim() || null,
         contact_name: form.contact_name?.trim() || null,
         contact_email: form.contact_email?.trim() || null,
-        monthly_retainer: form.monthly_retainer || null,
+        monthly_retainer: form.monthly_retainer ?? null,
       });
       toast.success("Client created");
       reset();
