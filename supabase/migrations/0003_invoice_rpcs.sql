@@ -29,6 +29,8 @@ end;
 $$;
 
 -- Generate next invoice number, e.g. INV-2026-0001
+-- Uses a transaction-scoped advisory lock to serialize concurrent callers,
+-- preventing two parallel invoice creations from generating the same number.
 create or replace function public.next_invoice_number()
 returns text
 language plpgsql
@@ -39,6 +41,7 @@ declare
   v_year text := to_char(current_date, 'YYYY');
   v_count integer;
 begin
+  perform pg_advisory_xact_lock(hashtext('invoice_number_' || v_year));
   select count(*) + 1
     into v_count
     from public.invoices

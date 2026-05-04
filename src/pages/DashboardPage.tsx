@@ -19,14 +19,19 @@ import {
   TASK_PRIORITY_LABEL,
   TASK_PRIORITY_TONE,
 } from "@/lib/labels";
-import { formatDateShort, formatHours, formatINR } from "@/lib/format";
+import {
+  formatDateShort,
+  formatHours,
+  formatINR,
+  formatLocalDateISO,
+} from "@/lib/format";
 
 function startOfWeekISO(): string {
   const d = new Date();
   const day = d.getDay() || 7; // Mon=1..Sun=7
-  if (day !== 1) d.setHours(-24 * (day - 1));
+  if (day !== 1) d.setDate(d.getDate() - (day - 1));
   d.setHours(0, 0, 0, 0);
-  return d.toISOString().slice(0, 10);
+  return formatLocalDateISO(d);
 }
 
 export function DashboardPage() {
@@ -44,20 +49,15 @@ export function DashboardPage() {
   const stats = useMemo(() => {
     const activeProjects =
       projects.data?.filter((p) => p.status === "active").length ?? 0;
-    const overdueTasks =
-      myTasks.data?.filter(
-        (t) =>
-          t.status !== "done" &&
-          t.due_date &&
-          new Date(t.due_date) < new Date(),
-      ).length ?? 0;
+    const openTasks =
+      myTasks.data?.filter((t) => t.status !== "done").length ?? 0;
     const hoursWeek =
       timeWeek.data?.reduce((sum, l) => sum + Number(l.hours), 0) ?? 0;
     const outstanding =
       invoices.data
         ?.filter((i) => i.status === "sent" || i.status === "overdue")
         .reduce((sum, i) => sum + Number(i.total), 0) ?? 0;
-    return { activeProjects, overdueTasks, hoursWeek, outstanding };
+    return { activeProjects, openTasks, hoursWeek, outstanding };
   }, [projects.data, myTasks.data, timeWeek.data, invoices.data]);
 
   if (
@@ -84,7 +84,7 @@ export function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard label="Active projects" value={stats.activeProjects} />
-        <StatCard label="My open tasks" value={myTasks.data?.length ?? 0} />
+        <StatCard label="My open tasks" value={stats.openTasks} />
         <StatCard label="Hours this week" value={formatHours(stats.hoursWeek)} />
         <StatCard label="Outstanding" value={formatINR(stats.outstanding)} />
       </div>

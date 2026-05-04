@@ -16,7 +16,7 @@ import {
 } from "@/queries/timeLogs";
 import { useProjects } from "@/queries/projects";
 import { useTasks } from "@/queries/tasks";
-import { formatDateShort, formatHours } from "@/lib/format";
+import { formatDateShort, formatHours, todayLocalISO } from "@/lib/format";
 
 export function TimeLogsPage() {
   const { profile } = useAuth();
@@ -152,9 +152,7 @@ function NewTimeLogModal({
   const [projectId, setProjectId] = useState<string>("");
   const tasks = useTasks(projectId ? { projectId } : undefined);
   const [taskId, setTaskId] = useState<string>("");
-  const [logDate, setLogDate] = useState<string>(
-    new Date().toISOString().slice(0, 10),
-  );
+  const [logDate, setLogDate] = useState<string>(todayLocalISO());
   const [hours, setHours] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [billable, setBillable] = useState(true);

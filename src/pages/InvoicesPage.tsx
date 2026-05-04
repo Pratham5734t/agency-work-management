@@ -23,7 +23,7 @@ import {
   INVOICE_STATUS_LABEL,
   INVOICE_STATUS_TONE,
 } from "@/lib/labels";
-import { formatDateShort, formatINR } from "@/lib/format";
+import { formatDateShort, formatINR, todayLocalISO } from "@/lib/format";
 import type { InvoiceStatus } from "@/lib/database.types";
 
 export function InvoicesPage() {
@@ -179,7 +179,7 @@ function NewInvoiceModal({ onClose }: { onClose: () => void }) {
   const [clientId, setClientId] = useState("");
   const projects = useProjects(clientId ? { clientId } : undefined);
   const [projectId, setProjectId] = useState("");
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayLocalISO();
   const [issueDate, setIssueDate] = useState(today);
   const [dueDate, setDueDate] = useState("");
   const [taxRate, setTaxRate] = useState<string>("18");

@@ -44,6 +44,17 @@ export function formatRelative(iso: string | null | undefined): string {
   return fmt.format(Math.round(ms / 1000), "second");
 }
 
+export function todayLocalISO(): string {
+  return formatLocalDateISO(new Date());
+}
+
+export function formatLocalDateISO(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
 export function initialsOf(name: string | null | undefined): string {
   if (!name) return "?";
   const parts = name.trim().split(/\s+/).filter(Boolean);
