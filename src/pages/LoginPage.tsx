@@ -27,7 +27,12 @@ export function LoginPage() {
     setLoading(true);
     try {
       await signIn(email, password);
-      navigate("/", { replace: true });
+      const dest =
+        (location.state as { from?: { pathname?: string } } | null)?.from
+          ?.pathname ?? null;
+      if (dest) {
+        navigate(dest, { replace: true });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
     } finally {
